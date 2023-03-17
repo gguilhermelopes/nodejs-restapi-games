@@ -1,10 +1,16 @@
 import express, { json, urlencoded } from "express";
 import connection from "./database/database.js";
 import Games from "./database/Games.js";
+import Users from "./database/Users.js";
+import auth from "./middlewares/auth.js";
 import cors from "cors";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const app = express();
 const port = 8080;
+
+export const jwtSecret = "123456789";
 
 app.use(cors());
 
@@ -16,9 +22,9 @@ connection
   .then(() => console.log("Conectado ao banco de dados!"))
   .catch((error) => console.log(error));
 
-app.get("/games", (req, res) => {
+app.get("/games", auth, (req, res) => {
   Games.findAll().then((games) => {
-    res.json(games);
+    res.json({ user: req.loggedUser, games });
   });
 });
 
@@ -76,6 +82,59 @@ app.put("/game/:id", (req, res) => {
       res.sendStatus(200);
     });
   }
+});
+
+app.post("/user", (req, res) => {
+  const { name, email, password } = req.body;
+
+  Users.findOne({ where: { email: email } }).then((user) => {
+    if (user) {
+      res.sendStatus(400);
+    } else {
+      const salt = bcrypt.genSaltSync(10);
+      const hash = bcrypt.hashSync(password, salt);
+
+      Users.create({ name, email, password: hash })
+        .then(() => {
+          res.sendStatus(200);
+        })
+        .catch((error) => {
+          res.sendStatus(400);
+        });
+    }
+  });
+});
+
+app.post("/auth", (req, res) => {
+  const { email, password } = req.body;
+
+  Users.findOne({ where: { email: email } }).then((user) => {
+    if (user) {
+      const correct = bcrypt.compareSync(password, user.password);
+      if (correct) {
+        jwt.sign(
+          { id: user.id, email: user.email },
+          jwtSecret,
+          { expiresIn: "48h" },
+          (error, token) => {
+            if (error) {
+              res.status(400);
+              res.json({ error: "Falha interna" });
+            } else {
+              res.status(200);
+              res.json({ token });
+            }
+          }
+        );
+      } else {
+        res.status(401);
+        res.json({ error: "Senha inválida!" });
+      }
+    } else {
+      res.status(404);
+      res.json({ error: "Email não encontrado!" });
+    }
+  });
 });
 
 app.listen(port, () => {
