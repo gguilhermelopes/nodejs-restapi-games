@@ -24,11 +24,11 @@ connection
 
 app.get("/games", auth, (req, res) => {
   Games.findAll().then((games) => {
-    res.json({ user: req.loggedUser, games });
+    res.json(games);
   });
 });
 
-app.get("/game/:id", (req, res) => {
+app.get("/game/:id", auth, (req, res) => {
   const { id } = req.params;
   if (isNaN(id)) {
     res.sendStatus(400);
@@ -41,7 +41,7 @@ app.get("/game/:id", (req, res) => {
   }
 });
 
-app.post("/game", (req, res) => {
+app.post("/game", auth, (req, res) => {
   const { title, year, price } = req.body;
   if (title && year && !isNaN(year) && price && !isNaN(price)) {
     Games.create({
@@ -56,7 +56,7 @@ app.post("/game", (req, res) => {
   }
 });
 
-app.delete("/game/:id", (req, res) => {
+app.delete("/game/:id", auth, (req, res) => {
   const { id } = req.params;
   if (isNaN(id)) {
     res.sendStatus(400);
@@ -71,7 +71,7 @@ app.delete("/game/:id", (req, res) => {
   }
 });
 
-app.put("/game/:id", (req, res) => {
+app.put("/game/:id", auth, (req, res) => {
   const { id } = req.params;
   const { title, year, price } = req.body;
 
@@ -84,7 +84,7 @@ app.put("/game/:id", (req, res) => {
   }
 });
 
-app.post("/user", (req, res) => {
+app.post("/user", auth, (req, res) => {
   const { name, email, password } = req.body;
 
   Users.findOne({ where: { email: email } }).then((user) => {
