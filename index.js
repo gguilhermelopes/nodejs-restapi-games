@@ -30,13 +30,25 @@ app.get("/games", auth, (req, res) => {
 
 app.get("/game/:id", auth, (req, res) => {
   const { id } = req.params;
+  const HATEOAS = [
+    {
+      href: `http://localhost:8080/game/${id}`,
+      method: "DELETE",
+      rel: "delete_game",
+    },
+    {
+      href: `http://localhost:8080/games`,
+      method: "GET",
+      rel: "get_all_games",
+    },
+  ];
   if (isNaN(id)) {
     res.sendStatus(400);
   } else {
     Games.findOne({
       where: { id: id },
     }).then((game) => {
-      game ? res.json(game) : res.sendStatus(404);
+      game ? res.json({ game, _links: HATEOAS }) : res.sendStatus(404);
     });
   }
 });
@@ -138,5 +150,5 @@ app.post("/auth", (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log("API online!");
+  console.log(`API online na porta ${port}`);
 });
