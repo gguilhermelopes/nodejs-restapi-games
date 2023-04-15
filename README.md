@@ -1,7 +1,7 @@
 # API GAMES
 ![GitHub repo size](https://img.shields.io/github/repo-size/gguilhermelopes/nodejs-restapi-games?style=for-the-badge)
 ![GitHub language count](https://img.shields.io/github/languages/count/gguilhermelopes/nodejs-restapi-games?style=for-the-badge)
-> API utilizada para armazenamento de informações de games
+> API utilizada para armazenamento de informações de games em banco de dados relacional MySQL.
 
 ## Endpoints
 ### GET /games
